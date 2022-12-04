@@ -2,7 +2,7 @@
  * @Author: cathylee 447932704@qq.com
  * @Date: 2022-12-02 22:05:44
  * @LastEditors: cathylee 447932704@qq.com
- * @LastEditTime: 2022-12-03 14:08:06
+ * @LastEditTime: 2022-12-04 10:01:36
  * @FilePath: /Fish/my-vue-app/src/components/SideBar/Side.vue
  * @Description: 
  * 
@@ -11,11 +11,13 @@
 <template>
   <el-aside width="200px" style="height: 100vh; background-color: #d9d4d4">
     <el-menu
+      :default-active="onRoutes"
       text-color="black"
       active-text-color="black"
       background-color="#d9d4d4"
       unique-opened
       height="100%"
+      router
     >
       <template v-for="item in items">
         <template v-if="item.subs">
@@ -63,11 +65,7 @@
           </el-sub-menu>
         </template>
         <template v-else>
-          <el-menu-item
-            :index="item.index"
-            :key="item.index"
-            v-permiss="item.permiss"
-          >
+          <el-menu-item :index="item.index" :key="item.index">
             <template #title>{{ item.title }}</template>
           </el-menu-item>
         </template>
@@ -77,21 +75,18 @@
 </template>
 
 <script setup>
+import { useRoute } from 'vue-router';
+import { computed } from 'vue';
+
 const items = [
-  {
-    index: "/dashboard",
-    title: "系统首页",
-    permiss: "1",
-  },
+  
   {
     index: "/adminManage",
     title: "管理员管理",
-    permiss: "2",
     subs: [
       {
         index: "/memberList",
         title: "管理员列表",
-        permiss: "3",
       },
     ],
   },
@@ -101,7 +96,7 @@ const items = [
     permiss: "4",
     subs: [
       {
-        index: "/saleChars",
+        index: "/saleCharts",
         title: "销售额统计",
         permiss: "5",
       },
@@ -144,18 +139,23 @@ const items = [
     ],
   },
   {
-    index: "/fedbackManage",
+    index: "/feedbackManage",
     title: "反馈管理",
     permiss: "12",
     subs: [
       {
-        index: "/fedbackList",
+        index: "/feedbackList",
         title: "反馈列表",
         permiss: "13",
       },
     ],
   },
 ];
+
+const route = useRoute();
+const onRoutes = computed(() => {
+  return route.path;
+});
 </script>
 
 <style></style>

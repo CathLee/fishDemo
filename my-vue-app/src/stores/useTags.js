@@ -2,7 +2,7 @@
  * @Author: cathylee 447932704@qq.com
  * @Date: 2022-12-03 12:22:03
  * @LastEditors: cathylee 447932704@qq.com
- * @LastEditTime: 2022-12-03 14:04:27
+ * @LastEditTime: 2022-12-03 15:19:29
  * @FilePath: /Fish/my-vue-app/src/stores/useTags.js
  * @Description:
  *
@@ -13,18 +13,15 @@ import { defineStore } from "pinia";
 const useTagsStore = defineStore("tags", {
   state: () => {
     return {
-      list: [
-        {
-          name: "我的首页",
-          title: "我的首页",
-          path: "/",
-        },
-      ],
+      list: [],
     };
   },
   getters: {
     show: (state) => {
       return state.list.length > 0;
+    },
+    nameList: (state) => {
+      return state.list.map((item) => item.name);
     },
   },
   actions: {

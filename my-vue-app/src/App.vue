@@ -2,7 +2,7 @@
  * @Author: cathylee 447932704@qq.com
  * @Date: 2022-12-02 20:28:40
  * @LastEditors: cathylee 447932704@qq.com
- * @LastEditTime: 2022-12-02 20:37:23
+ * @LastEditTime: 2022-12-03 15:20:29
  * @FilePath: /Fish/my-vue-app/src/App.vue
  * @Description: 
  * 
@@ -11,11 +11,10 @@
 <script setup>
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import HelloWorld from './components/HelloWorld.vue'
 </script>
 
 <template>
-  <HelloWorld />
+  <router-view />
 </template>
 
 <style lang="scss" scoped>
