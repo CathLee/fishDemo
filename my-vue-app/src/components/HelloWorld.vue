@@ -1,3 +1,13 @@
+<!--
+ * @Author: cathylee 447932704@qq.com
+ * @Date: 2022-12-02 20:28:40
+ * @LastEditors: cathylee 447932704@qq.com
+ * @LastEditTime: 2023-11-25 21:43:01
+ * @FilePath: /my-vue-app/src/components/HelloWorld.vue
+ * @Description: 
+ * 
+ * Copyright (c) 2023 by ${git_name_email}, All Rights Reserved. 
+-->
 <template>
   <Header />
   <SideBar />
@@ -20,8 +30,9 @@ import Header from "coms/Navbar/Header.vue";
 import SideBar from "coms/SideBar/Side.vue";
 import MyTag from "./Mytag/vtag.vue";
 import useTagsStore from "store/useTags.js";
-
+import { onMounted } from "vue";
 const tags = useTagsStore();
+
 </script>
 
 <style>

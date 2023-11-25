@@ -2,8 +2,8 @@
  * @Author: cathylee 447932704@qq.com
  * @Date: 2022-12-03 12:22:03
  * @LastEditors: cathylee 447932704@qq.com
- * @LastEditTime: 2022-12-03 15:19:29
- * @FilePath: /Fish/my-vue-app/src/stores/useTags.js
+ * @LastEditTime: 2023-11-25 21:49:17
+ * @FilePath: /my-vue-app/src/stores/useTags.js
  * @Description:
  *
  * Copyright (c) 2022 by cathylee 447932704@qq.com, All Rights Reserved.
@@ -26,7 +26,6 @@ const useTagsStore = defineStore("tags", {
   },
   actions: {
     delTagsItem(index) {
-      console.log(this);
       this.list.splice(index, 1);
     },
     setTagsItem(data) {
