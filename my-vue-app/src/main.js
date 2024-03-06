@@ -22,6 +22,15 @@ import { QuillEditor } from "@vueup/vue-quill";
 import '@vueup/vue-quill/dist/vue-quill.snow.css'
 
 const app = createApp(App);
+// // 法一：mixin全局监听
+// app.mixin({
+//     mounted() {
+//         this.$el.addEventListener('click', (event) => {
+//             // 实现埋点逻辑
+//             console.log('Global click tracking', event);
+//         });
+//     },
+// });
 app.provide('globalParam', 'ddddd');
 
 app.use(ElementPlus);
