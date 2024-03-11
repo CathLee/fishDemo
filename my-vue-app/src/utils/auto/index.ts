@@ -1,4 +1,5 @@
-import { parse, compileTemplate } from '@vue/compiler-sfc';
+
+import { parse, compileTemplate, rewriteDefault, compileScript } from '@vue/compiler-sfc';
 import transformNode from './babel_plugin';
 
 export default function autoTracker(pluginOptions) {
@@ -9,10 +10,32 @@ export default function autoTracker(pluginOptions) {
             if (!id.endsWith('.vue')) return;
 
             const { descriptor } = parse(code);
-            let newScriptContent = '';
-            let trackingCodeInjected = false;
+            const trackingCode = `
+            // Tracking code function
+            function _trackClickEvent(event) {
+                console.log('Tracking click event', event);
+            }`;
 
-            // 编译模板并获取编译后的代码
+            let scriptSetupContent = '';
+            let scriptContent = '';
+
+            // Handle script setup
+            if (descriptor.scriptSetup) {
+                const compiled = compileScript(descriptor, { id });
+                scriptSetupContent = rewriteDefault(compiled.content, '_sfc_main');
+                scriptSetupContent += `\n${trackingCode}`;
+            }
+
+            // Handle script
+            if (descriptor.script) {
+                scriptContent = descriptor.script.content;
+                if (!descriptor.scriptSetup) {
+                    // Only add tracking code if there is no script setup
+                    scriptContent += `\n${trackingCode}`;
+                }
+            }
+
+            // Compile template and include tracking logic if necessary
             let compiledTemplateCode = '';
             if (descriptor.template) {
                 const compileResult = compileTemplate({
@@ -20,44 +43,29 @@ export default function autoTracker(pluginOptions) {
                     source: descriptor.template.content,
                     filename: id,
                     compilerOptions: {
-                        nodeTransforms: [transformNode], // 使用自定义的 AST 转换函数
+                        nodeTransforms: [transformNode],
                     },
                 });
-                compiledTemplateCode = `<script>${compileResult.code}</script>`;
+                compiledTemplateCode = compileResult.code;
             }
 
-            // 埋点函数代码
-            const trackingCode = `
-            function _trackClickEvent(event) {
-                console.log('Tracking click event', event);
-                // 实际的埋点逻辑可以在这里实现
-            }`;
+            // Correctly combine script and script setup content with template compilation code
+            const combinedScriptContent = descriptor.scriptSetup ? 
+                `<script setup>${scriptSetupContent}\n${compiledTemplateCode}</script>` :
+                `<script>${scriptContent}\n${compiledTemplateCode}</script>`;
 
-            // 处理 <script setup>
-            if (descriptor.scriptSetup) {
-                newScriptContent += `<script setup>${descriptor.scriptSetup.content}\n${trackingCode}</script>`;
-                trackingCodeInjected = true;
-            }
-
-            // 处理普通 <script>
-            if (descriptor.script) {
-                newScriptContent += `<script>${descriptor.script.content}${trackingCodeInjected ? '' : '\n' + trackingCode}</script>`;
-            } else if (!trackingCodeInjected) {
-                // 如果没有 <script>，且埋点代码还未添加，则现在添加
-                newScriptContent += `<script>${trackingCode}</script>`;
-            }
-
-            // 组合最终代码
+            // Reassemble the final SFC content
             const newCode = [
                 descriptor.template ? `<template>${descriptor.template.content}</template>` : '',
-                newScriptContent,
-                compiledTemplateCode, // 将编译后的 render 函数代码放在最后，避免与 <script setup> 冲突
+                combinedScriptContent,
             ].join('\n');
 
             return {
                 code: newCode,
-                map: null,
+                map: null, // Consider providing source maps if needed
             };
         },
     };
 }
+
+
