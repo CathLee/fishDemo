@@ -1,71 +1,63 @@
+/*
+ * @Date: 2024-03-11 23:14:55
+ * @Description:
+ */
+import {
+  parse,
+  compileTemplate,
+  rewriteDefault,
+  compileScript,
+} from "@vue/compiler-sfc";
+import { transformNode } from "./babel_plugin";
 
-import { parse, compileTemplate, rewriteDefault, compileScript } from '@vue/compiler-sfc';
-import transformNode from './babel_plugin';
+export default function autoTrackerPlugin() {
+  return {
+    name: "auto-tracker",
+    enforce: "pre",
+    transform(code, id) {
+      if (!id.endsWith(".vue")) return;
 
-export default function autoTracker(pluginOptions) {
-    return {
-        name: 'autoTracker',
-        enforce: 'pre',
-        async transform(code, id) {
-            if (!id.endsWith('.vue')) return;
+      // 检查是否含有 <script setup>
+      const scriptSetupRegex = /<script setup.*>([\s\S]*?)<\/script>/gm;
+      let match = scriptSetupRegex.exec(code);
+      let modifiedCode = "";
+      if (match) {
+        const originalScriptContent = match[1];
 
-            const { descriptor } = parse(code);
-            const trackingCode = `
-            // Tracking code function
-            function _trackClickEvent(event) {
-                console.log('Tracking click event', event);
-            }`;
+        // 定义要注入的跟踪代码
+        const trackingCode = `\n// 跟踪代码\nconst _trackClickEvent = (event) => {\n  console.log('Tracking click event', event);\n};\n`;
 
-            let scriptSetupContent = '';
-            let scriptContent = '';
+        // 将跟踪代码注入到 <script setup> 内容中
+        const modifiedScriptContent = originalScriptContent + trackingCode;
 
-            // Handle script setup
-            if (descriptor.scriptSetup) {
-                const compiled = compileScript(descriptor, { id });
-                scriptSetupContent = rewriteDefault(compiled.content, '_sfc_main');
-                scriptSetupContent += `\n${trackingCode}`;
-            }
+        // 替换原始的 <script setup> 内容
+        modifiedCode = code.replace(
+          originalScriptContent,
+          modifiedScriptContent
+        );
+      }
 
-            // Handle script
-            if (descriptor.script) {
-                scriptContent = descriptor.script.content;
-                if (!descriptor.scriptSetup) {
-                    // Only add tracking code if there is no script setup
-                    scriptContent += `\n${trackingCode}`;
-                }
-            }
+      // 处理 <template>
+      const { descriptor } = parse(code);
+      if (descriptor.template) {
+        const compileResult = compileTemplate({
+          id,
+          source: descriptor.template.content,
+          filename: id,
+          compilerOptions: {
+            nodeTransforms: [transformNode], // 使用自定义转换逻辑
+          },
+        });
+        console.log("compileResult:", compileResult);
 
-            // Compile template and include tracking logic if necessary
-            let compiledTemplateCode = '';
-            if (descriptor.template) {
-                const compileResult = compileTemplate({
-                    id,
-                    source: descriptor.template.content,
-                    filename: id,
-                    compilerOptions: {
-                        nodeTransforms: [transformNode],
-                    },
-                });
-                compiledTemplateCode = compileResult.code;
-            }
-
-            // Correctly combine script and script setup content with template compilation code
-            const combinedScriptContent = descriptor.scriptSetup ? 
-                `<script setup>${scriptSetupContent}\n${compiledTemplateCode}</script>` :
-                `<script>${scriptContent}\n${compiledTemplateCode}</script>`;
-
-            // Reassemble the final SFC content
-            const newCode = [
-                descriptor.template ? `<template>${descriptor.template.content}</template>` : '',
-                combinedScriptContent,
-            ].join('\n');
-
-            return {
-                code: newCode,
-                map: null, // Consider providing source maps if needed
-            };
-        },
-    };
+        // 注意：这里仅示意如何使用 compileTemplate，实际应用中需要根据 compileResult.code 更新 modifiedCode
+      }
+      // todo: 怎么把template和modifiedCode结合起来使用,同时能规避setup中会使用ESM语法的问题
+      console.log(modifiedCode);
+      return {
+        code: modifiedCode,
+        map: null, // 根据需要提供 source map
+      };
+    },
+  };
 }
-
-
