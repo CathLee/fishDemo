@@ -25,7 +25,7 @@ export default function autoTrackerPlugin() {
         const originalScriptContent = match[1];
 
         // 定义要注入的跟踪代码
-        const trackingCode = `\n// 跟踪代码\nconst _trackClickEvent = (event) => {\n  console.log('Tracking click event', event);\n};\n`;
+        const trackingCode = `\n// 跟踪代码\nconst track = (event,fn) => {\n  console.log('Tracking click event', event,fn); \n};\n`;
 
         // 将跟踪代码注入到 <script setup> 内容中
         const modifiedScriptContent = originalScriptContent + trackingCode;
@@ -48,7 +48,9 @@ export default function autoTrackerPlugin() {
             nodeTransforms: [transformNode], // 使用自定义转换逻辑
           },
         });
-        console.log("compileResult:", compileResult);
+        console.log("compileResult:", compileResult.code);
+        const templateScriptContent = compileResult.code
+        modifiedCode += templateScriptContent;
 
         // 注意：这里仅示意如何使用 compileTemplate，实际应用中需要根据 compileResult.code 更新 modifiedCode
       }
