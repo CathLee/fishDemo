@@ -2,3 +2,4 @@
 .idea/modules.xml
 .idea/vcs.xml
 my-vue-app/package-lock.json
+.vscode/tasks.json
