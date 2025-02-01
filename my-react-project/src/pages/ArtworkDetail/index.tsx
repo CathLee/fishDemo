@@ -175,13 +175,14 @@ const ArtworkDetail: React.FC = () => {
 
             {/* 主要内容区域 */}
             <div className="max-w-7xl mx-auto px-4 py-12">
-                <div className="max-h-[45rem] overflow-hidden">
+                {/* 移动端取消最大高度限制，桌面端保持 */}
+                <div className="h-auto md:max-h-[45rem] md:overflow-hidden">
                     <div className="flex flex-col md:flex-row gap-8">
-                        {/* 左侧图片 */}
+                        {/* 左侧图片区域 */}
                         <div className="md:w-1/2 md:pr-8">
                             <div className="flex flex-col h-full">
                                 <img
-                                    className="w-full h-[35rem] object-cover rounded-lg shadow-lg"
+                                    className="w-full h-[20rem] md:h-[35rem] object-cover rounded-lg shadow-lg"
                                     src={artwork.imageUrl}
                                     alt={artwork.title}
                                 />
@@ -190,11 +191,11 @@ const ArtworkDetail: React.FC = () => {
                                 </h2>
                             </div>
                         </div>
-                        {/* 右侧信息 */}
-                        <div className="md:w-1/2 h-[35rem] overflow-y-auto">
-                            <div className="bg-white rounded-lg p-8 shadow-sm">
-                                {/* 灰色背景的文字解析部分 */}
-                                <div className="p-4 bg-gray-50 rounded-lg prose prose-sm max-w-none max-h-[300px] overflow-y-auto mb-5">
+                        {/* 右侧信息区域 - 桌面端保持滚动 */}
+                        <div className="md:w-1/2 h-auto md:h-[45rem] md:overflow-y-auto">
+                            <div className="bg-white rounded-lg p-4 md:p-8 shadow-sm">
+                                {/* 解析部分 */}
+                                <div className="p-4 bg-gray-50 rounded-lg prose prose-sm max-w-none">
                                     <div
                                         className="markdown-content"
                                         dangerouslySetInnerHTML={{
@@ -202,7 +203,7 @@ const ArtworkDetail: React.FC = () => {
                                     />
                                 </div>
 
-                                <div className="space-y-8">
+                                <div className="space-y-8 mt-8">
                                     <div>
                                         <h2 className="text-xl font-semibold text-gray-900 mb-3">🎨 色彩分析</h2>
                                         <div className="text-gray-700 leading-relaxed markdown-content"
