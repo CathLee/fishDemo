@@ -18,5 +18,29 @@ export const artworks: ArtPiece[] = [
         title: "无题",
         year: "1970年作品",
         imageUrl: "../../../downloaded_images/portrait-de-ma-femme.jpg"
-    }
+    },
+    {
+        id: 4,
+        title: "无题",
+        year: "1970年作品",
+        imageUrl: "../../../downloaded_images/huile-08.jpg"
+    },
+    {
+        id: 5,
+        title: "无题",
+        year: "1970年作品",
+        imageUrl: "../../../downloaded_images/huile-07.jpg"
+    },
+    {
+        id: 6,
+        title: "无题",
+        year: "1970年作品",
+        imageUrl: "../../../downloaded_images/huile-09.jpg"
+    },
+    {
+        id: 7,
+        title: "无题",
+        year: "1970年作品",
+        imageUrl: "../../../downloaded_images/huile-10.jpg"
+    },
 ]; 
