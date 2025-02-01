@@ -4,8 +4,8 @@ import { artworks } from '../../data/artworks';
 import axios from 'axios';
 
 const ArtworkDetail: React.FC = () => {
-    const [anaRes,setAnaRes] = useState<string>('')
-    const [totalRes,setTotalRes] = useState<string>('')
+    const [anaRes, setAnaRes] = useState<string>('')
+    const [totalRes, setTotalRes] = useState<string>('')
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const artwork = artworks.find(art => art.id === Number(id));
@@ -20,13 +20,13 @@ const ArtworkDetail: React.FC = () => {
                 responseType: 'blob'
             });
             const blob = response.data;
-            
+
             // 创建FormData对象
             const formData = new FormData();
             formData.append('file', blob, 'artwork.jpg');
 
             // 发送到Dify API上传文件
-            const uploadResponse = await axios.post('https://api.dify.ai/v1/files/upload', 
+            const uploadResponse = await axios.post('https://api.dify.ai/v1/files/upload',
                 formData,
                 {
                     headers: {
@@ -59,9 +59,34 @@ const ArtworkDetail: React.FC = () => {
                 }
             );
 
-            const {data} = analysisResponse.data;
+            const { data } = analysisResponse.data;
             const outputsText = data.outputs.text;
-            
+
+
+            const convertToHTML = (text:string)=> {
+                // 替换 ** 为 <strong>
+                text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+              
+                // 替换 * 开头的行为 <li>
+                text = text.replace(/\* (.*?)\n/g, '<li>$1</li>');
+              
+                // 替换标题
+                text = text.replace(/\*\*(.*?)\*\*\n/g, '<h3>$1</h3>');
+              
+                // 替换段落
+                text = text.replace(/([^\n]+)\n/g, '<p>$1</p>');
+              
+                // 替换列表
+                text = text.replace(/<li>(.*?)<\/li>/g, '<ul><li>$1</li></ul>');
+              
+                // 替换多个 <ul> 嵌套
+                text = text.replace(/<\/ul>\n<ul>/g, '');
+              
+                return text;
+              }
+            const outputsHtml = convertToHTML(outputsText)
+              
+
             // 使用正则表达式提取不同部分的分析
             const extractAnalysis = (text: string) => {
                 const analysis = {
@@ -72,34 +97,35 @@ const ArtworkDetail: React.FC = () => {
                 };
 
                 // 提取色彩分析
-                const colorMatch = text.match(/\*\*色彩分析：\*\*(.*?)(?=\*\*笔触特点|\*\*构图解析)/s);
+                const colorMatch = text.match(/色彩分析:\*\*(.*?)(?=\*\*笔触特点:)/s);
+                console.log('colorMatch:', colorMatch);
+                
                 if (colorMatch) {
-                    analysis.colorAnalysis = colorMatch[1].trim();
+                    analysis.colorAnalysis = convertToHTML(colorMatch[1].trim());
                 }
-
-                // 提取笔触分析
-                const brushworkMatch = text.match(/\*\*笔触特点：\*\*(.*?)(?=\*\*构图解析)/s);
+                // 提取笔触分析        
+                const brushworkMatch = text.match(/笔触特点:\*\*(.*?)(?=\*\*构图解析:)/s);
                 if (brushworkMatch) {
-                    analysis.brushworkAnalysis = brushworkMatch[1].trim();
+                    analysis.brushworkAnalysis =convertToHTML(brushworkMatch[1].trim());
                 }
 
                 // 提取构图分析
-                const compositionMatch = text.match(/\*\*结构图解析：\*\*(.*?)(?=\*\*风格特点)/s);
+                const compositionMatch = text.match(/构图解析:\*\*(.*?)(?=\*\*风格时期:)/s);
                 if (compositionMatch) {
-                    analysis.compositionAnalysis = compositionMatch[1].trim();
+                    analysis.compositionAnalysis = convertToHTML(compositionMatch[1].trim());
                 }
 
                 // 提取风格分析
-                const styleMatch = text.match(/\*\*风格时期：\*\*(.*?)(?=\*\*抽象抒情时期|$)/s);
+                const styleMatch = text.match(/风格时期:\*\*(.*?)(?=\*\*总结|$)/s);
                 if (styleMatch) {
-                    analysis.styleAnalysis = styleMatch[1].trim();
+                    analysis.styleAnalysis =convertToHTML(styleMatch[1].trim());
                 }
 
                 return analysis;
             };
 
-            console.log(outputsText)
-            setTotalRes(outputsText)
+            console.log(outputsHtml)
+            setTotalRes(outputsHtml)
             const analysisResult = extractAnalysis(outputsText);
             console.log(analysisResult)
             setAnaRes(JSON.stringify(analysisResult, null, 2));
@@ -109,9 +135,9 @@ const ArtworkDetail: React.FC = () => {
         }
     };
 
-    useEffect(()=>{
+    useEffect(() => {
         getAnalysis()
-    },[artwork])
+    }, [artwork])
 
     // 解析 anaRes JSON 字符串
     const analysisData = anaRes ? JSON.parse(anaRes) : null;
@@ -121,7 +147,7 @@ const ArtworkDetail: React.FC = () => {
             <div className="min-h-screen bg-gray-100 p-5">
                 <div className="max-w-4xl mx-auto text-center">
                     <h1 className="text-2xl text-gray-800 mb-4">作品未找到</h1>
-                    <button 
+                    <button
                         onClick={() => navigate('/')}
                         className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
@@ -137,7 +163,7 @@ const ArtworkDetail: React.FC = () => {
             {/* 顶部导航 */}
             <div className="bg-white shadow-sm">
                 <div className="max-w-7xl mx-auto px-4 py-4">
-                    <button 
+                    <button
                         onClick={() => navigate('/')}
                         className="text-gray-600 hover:text-gray-900 flex items-center"
                     >
@@ -149,60 +175,93 @@ const ArtworkDetail: React.FC = () => {
 
             {/* 主要内容区域 */}
             <div className="max-w-7xl mx-auto px-4 py-12">
-                <div className="flex flex-col md:flex-row gap-12">
-                    {/* 左侧图片 */}
-                    <div className="md:w-1/2">
-                        <div className="sticky top-8">
-                            <img
-                                src={artwork.imageUrl}
-                                alt={artwork.title}
-                                className="w-full rounded-lg shadow-lg"
-                            />
-                        </div>
-                    </div>
-
-                    {/* 右侧信息 */}
-                    <div className="md:w-1/2">
-                        <div className="bg-white rounded-lg p-8 shadow-sm">
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{artwork.title}</h1>
-                            <p className="text-gray-600 mb-8">{artwork.year}</p>
-                            
-                            <div className="mb-8 p-4 bg-gray-50 rounded-lg prose prose-sm max-w-none">
-                                <div 
-                                    className="markdown-content"
-                                    dangerouslySetInnerHTML={{ 
-                                        __html: totalRes ? totalRes.replace(/\*\*/g, '<strong>').replace(/\n/g, '<br/>') : ''
-                                    }} 
+                <div className="max-h-[45rem] overflow-hidden">
+                    <div className="flex flex-col md:flex-row gap-8">
+                        {/* 左侧图片 */}
+                        <div className="md:w-1/2 md:pr-8">
+                            <div className="flex flex-col h-full">
+                                <img
+                                    className="w-full h-[35rem] object-cover rounded-lg shadow-lg"
+                                    src={artwork.imageUrl}
+                                    alt={artwork.title}
                                 />
+                                <h2 className="mt-6 text-3xl font-bold text-gray-900 text-center">
+                                    光与影的艺术
+                                </h2>
                             </div>
-
-                            <div className="space-y-8">
-                                <div>
-                                    <h2 className="text-xl font-semibold text-gray-900 mb-3">🎨 色彩分析</h2>
-                                    <p className="text-gray-700 leading-relaxed">
-                                        {analysisData?.colorAnalysis || '正在分析...'}
-                                    </p>
+                        </div>
+                        {/* 右侧信息 */}
+                        <div className="md:w-1/2 h-[35rem] overflow-y-auto">
+                            <div className="bg-white rounded-lg p-8 shadow-sm">
+                                {/* 灰色背景的文字解析部分 */}
+                                <div className="p-4 bg-gray-50 rounded-lg prose prose-sm max-w-none max-h-[300px] overflow-y-auto mb-5">
+                                    <div
+                                        className="markdown-content"
+                                        dangerouslySetInnerHTML={{
+                                        __html: totalRes}}
+                                    />
                                 </div>
 
-                                <div>
-                                    <h2 className="text-xl font-semibold text-gray-900 mb-3">✍️ 笔触特点</h2>
-                                    <p className="text-gray-700 leading-relaxed">
-                                        {analysisData?.brushworkAnalysis || '正在分析...'}
-                                    </p>
-                                </div>
+                                <div className="space-y-8">
+                                    <div>
+                                        <h2 className="text-xl font-semibold text-gray-900 mb-3">🎨 色彩分析</h2>
+                                        <div className="text-gray-700 leading-relaxed markdown-content"
+                                            dangerouslySetInnerHTML={{
+                                                __html: analysisData?.colorAnalysis
+                                                    ? analysisData.colorAnalysis
+                                                        .replace(/\* ([^:]+):/g, '<p><strong>$1:</strong>')
+                                                        .replace(/\n\* /g, '</p><p><strong>')
+                                                        .replace(/\n/g, '<br/>')
+                                                        .replace(/<p>/g, '<p class="mb-4">')
+                                                    : '正在分析...'
+                                            }}
+                                        />
+                                    </div>
 
-                                <div>
-                                    <h2 className="text-xl font-semibold text-gray-900 mb-3">📐 构图解析</h2>
-                                    <p className="text-gray-700 leading-relaxed">
-                                        {analysisData?.compositionAnalysis || '正在分析...'}
-                                    </p>
-                                </div>
+                                    <div>
+                                        <h2 className="text-xl font-semibold text-gray-900 mb-3">✍️ 笔触特点</h2>
+                                        <div className="text-gray-700 leading-relaxed markdown-content"
+                                            dangerouslySetInnerHTML={{
+                                                __html: analysisData?.brushworkAnalysis
+                                                    ? analysisData.brushworkAnalysis
+                                                        .replace(/\* ([^:]+):/g, '<p><strong>$1:</strong>')
+                                                        .replace(/\n\* /g, '</p><p><strong>')
+                                                        .replace(/\n/g, '<br/>')
+                                                        .replace(/<p>/g, '<p class="mb-4">')
+                                                    : '正在分析...'
+                                            }}
+                                        />
+                                    </div>
 
-                                <div>
-                                    <h2 className="text-xl font-semibold text-gray-900 mb-3">🌟 风格时期</h2>
-                                    <p className="text-gray-700 leading-relaxed">
-                                        {analysisData?.styleAnalysis || '正在分析...'}
-                                    </p>
+                                    <div>
+                                        <h2 className="text-xl font-semibold text-gray-900 mb-3">📐 构图解析</h2>
+                                        <div className="text-gray-700 leading-relaxed markdown-content"
+                                            dangerouslySetInnerHTML={{
+                                                __html: analysisData?.compositionAnalysis
+                                                    ? analysisData.compositionAnalysis
+                                                        .replace(/\* ([^:]+):/g, '<p><strong>$1:</strong>')
+                                                        .replace(/\n\* /g, '</p><p><strong>')
+                                                        .replace(/\n/g, '<br/>')
+                                                        .replace(/<p>/g, '<p class="mb-4">')
+                                                    : '正在分析...'
+                                            }}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <h2 className="text-xl font-semibold text-gray-900 mb-3">🌟 风格时期</h2>
+                                        <div className="text-gray-700 leading-relaxed markdown-content"
+                                            dangerouslySetInnerHTML={{
+                                                __html: analysisData?.styleAnalysis
+                                                    ? analysisData.styleAnalysis
+                                                        .replace(/\* ([^:]+):/g, '<p><strong>$1:</strong>')
+                                                        .replace(/\n\* /g, '</p><p><strong>')
+                                                        .replace(/\n/g, '<br/>')
+                                                        .replace(/<p>/g, '<p class="mb-4">')
+                                                    : '正在分析...'
+                                            }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>

@@ -1,3 +1,15 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities; 
+@tailwind utilities;
+
+.bg{
+  background-image: url(../downloaded_images/huile-09.jpg);
+}
+/* 斜线剪裁效果 */
+.clip-right {
+  clip-path: polygon(50% 0,0 100%, 100% 100%,100% 0);
+}
+
+.clip-left {
+  clip-path: polygon(0 0,100% 0%,50% 100%,0 100%);
+}
