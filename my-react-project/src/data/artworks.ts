@@ -43,4 +43,10 @@ export const artworks: ArtPiece[] = [
         year: "1970年作品",
         imageUrl: "/downloaded_images/huile-10.jpg"
     },
+    {
+        id: 8,
+        title: "无题",
+        year: "1970年作品",
+        imageUrl: "/downloaded_images/huile-12.jpg"
+    },
 ]; 
